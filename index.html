@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,26 +15,32 @@
             color: white;
             min-height: 100vh;
         }
+
         .container {
             background: rgba(255, 255, 255, 0.1);
             padding: 30px;
             border-radius: 15px;
             backdrop-filter: blur(10px);
         }
+
         h1 {
             text-align: center;
             margin-bottom: 30px;
             font-size: 2.5em;
         }
+
         .form-group {
             margin-bottom: 20px;
         }
+
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
         }
-        input, select {
+
+        input,
+        select {
             width: 100%;
             padding: 12px;
             border: none;
@@ -41,6 +48,7 @@
             font-size: 16px;
             box-sizing: border-box;
         }
+
         button {
             width: 100%;
             padding: 15px;
@@ -52,17 +60,21 @@
             cursor: pointer;
             transition: background 0.3s;
         }
+
         button:hover {
             background: #45a049;
         }
+
         button:disabled {
             background: #cccccc;
             cursor: not-allowed;
         }
+
         .loading {
             text-align: center;
             margin: 20px 0;
         }
+
         .spinner {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #3498db;
@@ -72,51 +84,65 @@
             animation: spin 1s linear infinite;
             margin: 0 auto;
         }
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
+
         .results {
             margin-top: 30px;
             background: rgba(255, 255, 255, 0.1);
             padding: 20px;
             border-radius: 10px;
         }
+
         .error {
             background: rgba(255, 0, 0, 0.2);
             padding: 15px;
             border-radius: 8px;
             margin: 20px 0;
         }
+
         .stat-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin: 20px 0;
         }
+
         .stat-card {
             background: rgba(255, 255, 255, 0.1);
             padding: 15px;
             border-radius: 8px;
             text-align: center;
         }
+
         .stat-value {
             font-size: 1.5em;
             font-weight: bold;
             color: #4CAF50;
         }
+
         .analysis-section {
             background: rgba(255, 255, 255, 0.05);
             padding: 20px;
             border-radius: 10px;
             margin: 20px 0;
         }
+
         .champion-list {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             margin: 10px 0;
         }
+
         .champion-tag {
             background: rgba(255, 255, 255, 0.2);
             padding: 5px 10px;
@@ -125,26 +151,26 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🎮 Rift Rewind</h1>
         <p style="text-align: center; font-size: 1.2em; margin-bottom: 30px;">
             Get your comprehensive League of Legends year-end analysis
         </p>
-        
+
         <form id="analysisForm">
             <div class="form-group">
                 <label for="summonerName">Summoner Name:</label>
-                <input type="text" id="summonerName" name="summonerName" required 
-                       placeholder="Enter your summoner name" />
+                <input type="text" id="summonerName" name="summonerName" required
+                    placeholder="Enter your summoner name" />
             </div>
-            
+
             <div class="form-group">
                 <label for="tagLine">Tag Line:</label>
-                <input type="text" id="tagLine" name="tagLine" value="NA1" 
-                       placeholder="NA1, EUW, KR, etc." />
+                <input type="text" id="tagLine" name="tagLine" value="NA1" placeholder="NA1, EUW, KR, etc." />
             </div>
-            
+
             <div class="form-group">
                 <label for="region">Region:</label>
                 <select id="region" name="region">
@@ -160,20 +186,20 @@
                     <option value="tr1">Turkey</option>
                 </select>
             </div>
-            
+
             <button type="submit" id="analyzeBtn">
                 🔍 Analyze My Performance
             </button>
         </form>
-        
+
         <div id="loading" class="loading" style="display: none;">
             <div class="spinner"></div>
             <p>Analyzing your last 50 matches... This may take 20-30 seconds</p>
             <p><small>Fetching match data, calculating statistics, and generating AI insights...</small></p>
         </div>
-        
+
         <div id="error" class="error" style="display: none;"></div>
-        
+
         <div id="results" class="results" style="display: none;">
             <!-- Results will be populated here -->
         </div>
@@ -182,20 +208,20 @@
     <script>
         // Replace with your actual API Gateway URL
         const API_URL = 'https://kqn3sgertb.execute-api.us-east-2.amazonaws.com/prod/analyze';
-        
-        document.getElementById('analysisForm').addEventListener('submit', async function(e) {
+
+        document.getElementById('analysisForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const summonerName = document.getElementById('summonerName').value;
             const tagLine = document.getElementById('tagLine').value;
             const region = document.getElementById('region').value;
-            
+
             // Show loading, hide results/error
             document.getElementById('loading').style.display = 'block';
             document.getElementById('results').style.display = 'none';
             document.getElementById('error').style.display = 'none';
             document.getElementById('analyzeBtn').disabled = true;
-            
+
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
@@ -208,15 +234,28 @@
                         region: region
                     })
                 });
-                
+
                 const data = await response.json();
-                
-                if (response.ok) {
-                    displayResults(data);
+
+                // Fix: Handle the nested response structure
+                if (data.statusCode) {
+                    // Lambda returned wrapped response
+                    if (data.statusCode === 200) {
+                        const actualData = JSON.parse(data.body);
+                        displayResults(actualData);
+                    } else {
+                        const errorData = JSON.parse(data.body);
+                        throw new Error(errorData.error || 'Analysis failed');
+                    }
                 } else {
-                    throw new Error(data.error || 'Analysis failed');
+                    // Direct response (shouldn't happen with current setup)
+                    if (response.ok) {
+                        displayResults(data);
+                    } else {
+                        throw new Error(data.error || 'Analysis failed');
+                    }
                 }
-                
+
             } catch (error) {
                 document.getElementById('error').textContent = `Error: ${error.message}`;
                 document.getElementById('error').style.display = 'block';
@@ -224,11 +263,12 @@
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('analyzeBtn').disabled = false;
             }
+
         });
-        
+
         function displayResults(data) {
             const resultsDiv = document.getElementById('results');
-            
+
             const html = `
                 <h2>📊 Analysis Results for ${data.player_info.player_name}</h2>
                 
@@ -261,11 +301,11 @@
                     <h3>🎯 Top Champions</h3>
                     <div class="champion-list">
                         ${Object.entries(data.champion_stats)
-                            .sort((a, b) => b[1].games - a[1].games)
-                            .slice(0, 5)
-                            .map(([champ, stats]) => 
-                                `<div class="champion-tag">${champ}: ${stats.games} games (${stats.win_rate.toFixed(1)}% WR)</div>`
-                            ).join('')}
+                    .sort((a, b) => b[1].games - a[1].games)
+                    .slice(0, 5)
+                    .map(([champ, stats]) =>
+                        `<div class="champion-tag">${champ}: ${stats.games} games (${stats.win_rate.toFixed(1)}% WR)</div>`
+                    ).join('')}
                     </div>
                 </div>
                 
@@ -274,10 +314,11 @@
                     <div style="white-space: pre-wrap; line-height: 1.6;">${data.analysis}</div>
                 </div>
             `;
-            
+
             resultsDiv.innerHTML = html;
             resultsDiv.style.display = 'block';
         }
     </script>
 </body>
+
 </html>
